@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Happy Herbivore - Bestelzuil</title>
+
+    <!-- Noto Sans (reading font) -->
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="kiosk-root">
+      <div class="kiosk-frame">
+        <!-- Splash screen -->
+        <section
+          id="screen-splash"
+          class="screen screen--active screen--splash"
+          data-screen="splash"
+        >
+          <div id="splash-bg-1" class="splash-bg-layer"></div>
+          <div id="splash-bg-2" class="splash-bg-layer"></div>
+          <button class="screen-splash-hit-area" data-action="start-order">
+            <div class="screen-splash-overlay">
+              <div class="logo-stack">
+                <img
+                  src="assets/images/logo_big_complete_transparent.png"
+                  alt="Happy Herbivore"
+                  class="logo-main"
+                />
+              </div>
+              <div
+                class="heading heading--xl heading--outline"
+                data-i18n-key="tapToOrder"
+              >
+                Tik om te bestellen
+              </div>
+            </div>
+          </button>
+        </section>
+
+        <!-- Welcome screen -->
+        <section
+          id="screen-welcome"
+          class="screen screen--welcome"
+          data-screen="welcome"
+          hidden
+        >
+          <header class="welcome-header">
+            <div class="welcome-header-logo">
+              <img
+                src="assets/images/logo_big_dinosaur_transparent.png"
+                alt="Happy Herbivore Dino"
+                class="logo-dino"
+              />
+            </div>
+            <div class="welcome-header-text">
+              <div class="heading heading--xl heading--outline">
+                <span data-i18n-key="welcome">welkom</span>
+              </div>
+              <div class="heading heading--lg heading--outline">
+                <span data-i18n-key="orderHere">bestel hier</span>
+              </div>
+            </div>
+          </header>
+
+          <main class="welcome-main">
+            <div class="welcome-order-type">
+              <button
+                class="btn-tile btn-tile--primary"
+                data-order-type="here"
+              >
+                <span data-i18n-key="eatHere">Hier eten</span>
+              </button>
+              <button
+                class="btn-tile btn-tile--primary"
+                data-order-type="takeaway"
+              >
+                <span data-i18n-key="takeAway">Meenemen</span>
+              </button>
+            </div>
+          </main>
+
+          <footer class="welcome-footer">
+            <div class="welcome-language-label" data-i18n-key="chooseLanguage">
+              Kies een taal
+            </div>
+            <div class="welcome-language-switcher">
+              <button class="lang-btn" data-lang="nl" aria-label="Nederlands">
+                <img
+                  src="assets/images/netherlands-flag-png-large.png"
+                  alt="Nederlands"
+                  class="lang-flag"
+                />
+              </button>
+              <button class="lang-btn" data-lang="de" aria-label="Deutsch">
+                <img
+                  src="assets/images/germany-flag-png-large.png"
+                  alt="Deutsch"
+                  class="lang-flag"
+                />
+              </button>
+              <button class="lang-btn" data-lang="en" aria-label="English">
+                <img
+                  src="assets/images/united-kingdom-flag-png-large.png"
+                  alt="English"
+                  class="lang-flag"
+                />
+              </button>
+            </div>
+          </footer>
+        </section>
+
+        <!-- Menu screen -->
+        <section
+          id="screen-menu"
+          class="screen screen--menu"
+          data-screen="menu"
+          hidden
+        >
+          <aside class="menu-sidebar">
+            <div class="menu-sidebar-header">
+              <img
+                src="assets/images/logo_big_dinosaur_transparent.png"
+                alt="Happy Herbivore Dino"
+                class="logo-dino-small"
+              />
+            </div>
+            <nav id="category-list" class="menu-categories"></nav>
+          </aside>
+
+          <div class="menu-main">
+            <header class="menu-topbar">
+              <div class="menu-topbar-left">
+                <div
+                  class="heading heading--md heading--outline"
+                  data-i18n-key="categoryTitle"
+                >
+                  KIES JE FAVORIET
+                </div>
+              </div>
+              <button
+                class="btn-cart"
+                type="button"
+                data-action="open-cart"
+                aria-label="Winkelwagen"
+              >
+                <span
+                  class="btn-cart-label"
+                  data-i18n-key="cartButtonLabel"
+                >
+                  Winkelwagen
+                </span>
+                <span id="cart-count-badge" class="btn-cart-count">0</span>
+              </button>
+            </header>
+
+            <main class="menu-grid-wrapper">
+              <div id="product-grid" class="menu-grid"></div>
+            </main>
+          </div>
+        </section>
+
+        <!-- Cart / overzicht screen -->
+        <section
+          id="screen-cart"
+          class="screen screen--cart"
+          data-screen="cart"
+          hidden
+        >
+          <header class="cart-header">
+            <div
+              class="heading heading--md heading--outline"
+              id="cart-title"
+              data-i18n-key="cartTitle"
+            >
+              0 items in uw winkelwagen
+            </div>
+          </header>
+
+          <main class="cart-main">
+            <div id="cart-items" class="cart-items"></div>
+          </main>
+
+          <footer class="cart-footer">
+            <button
+              class="btn-large btn-large--secondary"
+              type="button"
+              data-action="back-to-menu"
+            >
+              <span data-i18n-key="continueShopping">Verder winkelen</span>
+            </button>
+            <button
+              class="btn-large btn-large--primary"
+              type="button"
+              data-action="checkout"
+            >
+              <span data-i18n-key="completeOrder">Bestelling afronden</span>
+            </button>
+          </footer>
+        </section>
+
+        <!-- Confirmation screen -->
+        <section
+          id="screen-confirmation"
+          class="screen screen--confirmation"
+          data-screen="confirmation"
+          hidden
+        >
+          <div class="confirmation-card">
+            <div
+              class="heading heading--lg heading--outline confirmation-title"
+              data-i18n-key="thankYou"
+            >
+              Bedankt voor uw bestelling
+            </div>
+            <div
+              class="confirmation-label"
+              data-i18n-key="yourOrderNumber"
+            >
+              Je ordernummer:
+            </div>
+            <div id="order-number" class="confirmation-number">12</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="js/menu-data.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+  </html>
+
