@@ -1,5 +1,8 @@
 // Eenvoudige kiosk-app voor Happy Herbivore
 
+let categories = [];
+let productsByCategory = {};
+
 const AppState = {
   currentScreen: "splash",
   selectedLanguage: "nl",
@@ -80,7 +83,29 @@ const translations = {
     completeOrder: "Bestellung abschließen",
     thankYou: "Danke für deine Bestellung",
     yourOrderNumber: "Deine Bestellnummer:",
-    // Categorieën (labels, productnamen kunnen NL blijven indien gewenst)
+    // Kategorien
+    catBreakfast: "Frühstück",
+    catLunch: "Mittagessen",
+    catHandheld: "Handhelds",
+    catSides: "Beilagen",
+    catDips: "Dips",
+    catDrinks: "Getränke",
+    // Produkte
+    prodGreenSmoothie: "Grüner Smoothie",
+    prodOvernightOats: "Overnight Oats",
+    prodChiaParfait: "Chia-Parfait",
+    prodBuddhaBowl: "Buddha-Bowl",
+    prodFalafelWrap: "Falafel-Wrap",
+    prodQuinoaSalad: "Quinoa-Salat",
+    prodBeanBurger: "Bohnen-Burger",
+    prodJackfruitTaco: "Jackfruit-Taco",
+    prodSweetFries: "Süßkartoffel-Pommes",
+    prodHerbSlaw: "Herbivore-Slaw",
+    prodGuacamoleDip: "Guacamole-Dip",
+    prodHummusDip: "Hummus-Dip",
+    prodBerrySmoothie: "Beeren-Smoothie",
+    prodIcedTea: "Eistee",
+    prodInfusedWater: "Infused Water",
   },
   en: {
     tapToOrder: "Tap to order",
@@ -98,6 +123,29 @@ const translations = {
     completeOrder: "Complete order",
     thankYou: "Thank you for your order",
     yourOrderNumber: "Your order number:",
+    // Categories
+    catBreakfast: "breakfast",
+    catLunch: "lunch",
+    catHandheld: "handhelds",
+    catSides: "sides",
+    catDips: "dips",
+    catDrinks: "drinks",
+    // Products
+    prodGreenSmoothie: "Green smoothie",
+    prodOvernightOats: "Overnight oats",
+    prodChiaParfait: "Chia parfait",
+    prodBuddhaBowl: "Buddha bowl",
+    prodFalafelWrap: "Falafel wrap",
+    prodQuinoaSalad: "Quinoa salad",
+    prodBeanBurger: "Bean burger",
+    prodJackfruitTaco: "Jackfruit taco",
+    prodSweetFries: "Sweet potato fries",
+    prodHerbSlaw: "Herbivore slaw",
+    prodGuacamoleDip: "Guacamole dip",
+    prodHummusDip: "Hummus dip",
+    prodBerrySmoothie: "Berry smoothie",
+    prodIcedTea: "Iced tea",
+    prodInfusedWater: "Infused water",
   },
 };
 
@@ -260,16 +308,18 @@ function renderCategories() {
       "category-tile" + (cat.id === activeId ? " category-tile--active" : "");
     button.setAttribute("data-category-id", cat.id);
 
-    const img = document.createElement("img");
-    img.src = cat.image;
-    img.alt = "";
-    img.className = "category-tile__image";
+    if (cat.image) {
+      const img = document.createElement("img");
+      img.src = cat.image;
+      img.alt = "";
+      img.className = "category-tile__image";
+      button.appendChild(img);
+    }
 
     const label = document.createElement("div");
     label.className = "category-tile__label";
-    label.textContent = getTranslation(cat.labelKey) || cat.id;
+    label.textContent = getTranslation(cat.labelKey) || cat.name || cat.id;
 
-    button.appendChild(img);
     button.appendChild(label);
 
     button.addEventListener("click", () => {
@@ -294,10 +344,19 @@ function renderProductsForCategory(categoryId) {
     button.className = "product-tile";
     button.setAttribute("data-product-id", product.id);
 
+    if (product.image) {
+      const imgEl = document.createElement("img");
+      imgEl.src = product.image;
+      imgEl.alt = product.name || "";
+      imgEl.className = "product-tile__image";
+      imgEl.loading = "lazy";
+      button.appendChild(imgEl);
+    }
+
     const nameEl = document.createElement("div");
     nameEl.className = "product-tile__name";
     nameEl.textContent =
-      getTranslation(product.nameKey) || product.id.replace(/-/g, " ");
+      getTranslation(product.nameKey) || product.name || product.id.replace(/-/g, " ");
 
     const priceEl = document.createElement("div");
     priceEl.className = "product-tile__price";
@@ -337,7 +396,7 @@ function renderCartItems() {
     const nameEl = document.createElement("div");
     nameEl.className = "cart-item__name";
     nameEl.textContent =
-      getTranslation(product.nameKey) || product.id.replace(/-/g, " ");
+      getTranslation(product.nameKey) || product.name || product.id.replace(/-/g, " ");
 
     const controls = document.createElement("div");
     controls.className = "cart-item__controls";
@@ -525,7 +584,16 @@ function attachGlobalHandlers() {
   }
 }
 
-function initApp() {
+async function initApp() {
+  try {
+    const response = await fetch("api.php");
+    const data = await response.json();
+    categories = data.categories || [];
+    productsByCategory = data.productsByCategory || {};
+  } catch (e) {
+    console.error("Failed to load menu data", e);
+  }
+
   AppState.selectedLanguage = "nl";
   AppState.activeCategoryId = categories[0] ? categories[0].id : null;
   attachGlobalHandlers();
