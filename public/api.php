@@ -57,6 +57,8 @@ try {
             'id' => 'prod-' . $p['product_id'],
             'nameKey' => '',
             'name' => $p['name'],
+            'description' => $p['description'] ?? '',
+            'kcal' => $p['kcal'] !== null ? (int) $p['kcal'] : null,
             'price' => (float) $p['price'],
             'image' => $p['filename'] ? 'assets/images/menu/' . $p['filename'] : null
         ];

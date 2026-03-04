@@ -43,6 +43,8 @@ const translations = {
     completeOrder: "Bestelling afronden",
     thankYou: "Bedankt voor uw bestelling",
     yourOrderNumber: "Je ordernummer:",
+    modalAddToCart: "Toevoegen",
+    modalKcal: "kcal",
     // Categorieën
     catBreakfast: "ontbijt",
     catLunch: "lunch",
@@ -83,6 +85,8 @@ const translations = {
     completeOrder: "Bestellung abschließen",
     thankYou: "Danke für deine Bestellung",
     yourOrderNumber: "Deine Bestellnummer:",
+    modalAddToCart: "Hinzufügen",
+    modalKcal: "kcal",
     // Kategorien
     catBreakfast: "Frühstück",
     catLunch: "Mittagessen",
@@ -123,6 +127,8 @@ const translations = {
     completeOrder: "Complete order",
     thankYou: "Thank you for your order",
     yourOrderNumber: "Your order number:",
+    modalAddToCart: "Add to cart",
+    modalKcal: "kcal",
     // Categories
     catBreakfast: "breakfast",
     catLunch: "lunch",
@@ -161,8 +167,8 @@ function getTranslation(key, options = {}) {
       count === 0
         ? key + "_zero"
         : count === 1
-        ? key + "_one"
-        : key + "_other";
+          ? key + "_one"
+          : key + "_other";
     const pluralValue = dict[pluralKey] || translations.nl[pluralKey];
     if (pluralValue) {
       value = pluralValue;
@@ -366,11 +372,162 @@ function renderProductsForCategory(categoryId) {
     button.appendChild(priceEl);
 
     button.addEventListener("click", () => {
-      addToCart(product.id);
+      openProductModal(product);
     });
 
     grid.appendChild(button);
   });
+}
+
+function openProductModal(product) {
+  // Remove any existing modal
+  closeProductModal();
+
+  let modalQty = 1;
+
+  const modal = document.createElement("div");
+  modal.className = "product-modal";
+  modal.id = "product-modal";
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "product-modal-backdrop";
+  backdrop.addEventListener("click", closeProductModal);
+  modal.appendChild(backdrop);
+
+  const dialog = document.createElement("div");
+  dialog.className = "product-modal-dialog";
+
+  // Image
+  if (product.image) {
+    const img = document.createElement("img");
+    img.src = product.image;
+    img.alt = product.name || "";
+    img.className = "product-modal-image";
+    dialog.appendChild(img);
+  }
+
+  // Content wrapper
+  const content = document.createElement("div");
+  content.className = "product-modal-content";
+
+  // Header (name + close)
+  const header = document.createElement("div");
+  header.className = "product-modal-header";
+
+  const nameEl = document.createElement("div");
+  nameEl.className = "product-modal-name";
+  nameEl.textContent =
+    getTranslation(product.nameKey) || product.name || product.id.replace(/-/g, " ");
+  header.appendChild(nameEl);
+
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "product-modal-close";
+  closeBtn.type = "button";
+  closeBtn.textContent = "\u00d7";
+  closeBtn.addEventListener("click", closeProductModal);
+  header.appendChild(closeBtn);
+
+  content.appendChild(header);
+
+  // Body (description + kcal)
+  const body = document.createElement("div");
+  body.className = "product-modal-body";
+
+  if (product.description) {
+    const descEl = document.createElement("div");
+    descEl.className = "product-modal-description";
+    descEl.textContent = product.description;
+    body.appendChild(descEl);
+  }
+
+  if (product.kcal != null) {
+    const kcalEl = document.createElement("span");
+    kcalEl.className = "product-modal-kcal";
+    kcalEl.textContent = product.kcal + " " + getTranslation("modalKcal");
+    body.appendChild(kcalEl);
+  }
+
+  content.appendChild(body);
+
+  // Footer (qty selector + price + add button)
+  const footer = document.createElement("div");
+  footer.className = "product-modal-footer";
+
+  // Quantity selector
+  const qtyWrap = document.createElement("div");
+  qtyWrap.className = "product-modal-qty";
+
+  const minusBtn = document.createElement("button");
+  minusBtn.className = "qty-btn";
+  minusBtn.type = "button";
+  minusBtn.textContent = "\u2212";
+
+  const qtyVal = document.createElement("span");
+  qtyVal.className = "product-modal-qty-value";
+  qtyVal.textContent = String(modalQty);
+
+  const plusBtn = document.createElement("button");
+  plusBtn.className = "qty-btn";
+  plusBtn.type = "button";
+  plusBtn.textContent = "+";
+
+  const priceEl = document.createElement("span");
+  priceEl.className = "product-modal-price";
+  priceEl.textContent = formatPrice(product.price * modalQty);
+
+  function updateQtyUI() {
+    qtyVal.textContent = String(modalQty);
+    priceEl.textContent = formatPrice(product.price * modalQty);
+  }
+
+  minusBtn.addEventListener("click", () => {
+    if (modalQty > 1) {
+      modalQty--;
+      updateQtyUI();
+    }
+  });
+
+  plusBtn.addEventListener("click", () => {
+    modalQty++;
+    updateQtyUI();
+  });
+
+  qtyWrap.appendChild(minusBtn);
+  qtyWrap.appendChild(qtyVal);
+  qtyWrap.appendChild(plusBtn);
+  footer.appendChild(qtyWrap);
+
+  // Actions (price + add btn)
+  const actions = document.createElement("div");
+  actions.className = "product-modal-actions";
+
+  actions.appendChild(priceEl);
+
+  const addBtn = document.createElement("button");
+  addBtn.className = "btn-add-to-cart";
+  addBtn.type = "button";
+  addBtn.textContent = getTranslation("modalAddToCart");
+  addBtn.addEventListener("click", () => {
+    for (let i = 0; i < modalQty; i++) {
+      addToCart(product.id);
+    }
+    closeProductModal();
+  });
+  actions.appendChild(addBtn);
+
+  footer.appendChild(actions);
+  content.appendChild(footer);
+
+  dialog.appendChild(content);
+  modal.appendChild(dialog);
+  document.body.appendChild(modal);
+}
+
+function closeProductModal() {
+  const existing = document.getElementById("product-modal");
+  if (existing) {
+    existing.remove();
+  }
 }
 
 function renderCartItems() {
