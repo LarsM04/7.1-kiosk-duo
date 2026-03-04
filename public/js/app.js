@@ -508,10 +508,76 @@ function openProductModal(product) {
   addBtn.type = "button";
   addBtn.textContent = getTranslation("modalAddToCart");
   addBtn.addEventListener("click", () => {
-    for (let i = 0; i < modalQty; i++) {
-      addToCart(product.id);
+    // Start fly-to-cart animation
+    const modalImg = modal.querySelector(".product-modal-image");
+    const cartBtn = document.querySelector(".btn-cart");
+    const badge = document.getElementById("cart-count-badge");
+
+    if (modalImg && cartBtn) {
+      const imgRect = modalImg.getBoundingClientRect();
+      const cartRect = cartBtn.getBoundingClientRect();
+
+      // Create flying clone
+      const clone = document.createElement("img");
+      clone.src = modalImg.src;
+      clone.className = "fly-to-cart";
+      clone.style.top = imgRect.top + "px";
+      clone.style.left = imgRect.left + "px";
+      clone.style.width = imgRect.width + "px";
+      clone.style.height = imgRect.height + "px";
+      clone.style.opacity = "1";
+      document.body.appendChild(clone);
+
+      // Close modal immediately so product "flies out"
+      closeProductModal();
+
+      // Trigger the flight on next frame
+      requestAnimationFrame(() => {
+        clone.classList.add("is-flying");
+        clone.style.top = (cartRect.top + cartRect.height / 2 - 20) + "px";
+        clone.style.left = (cartRect.left + cartRect.width / 2 - 20) + "px";
+        clone.style.width = "40px";
+        clone.style.height = "40px";
+        clone.style.opacity = "0.3";
+        clone.style.borderRadius = "50%";
+      });
+
+      // When animation ends: add to cart, bounce badge, remove clone
+      clone.addEventListener("transitionend", function onEnd(e) {
+        if (e.propertyName !== "top") return;
+        clone.removeEventListener("transitionend", onEnd);
+        clone.remove();
+
+        for (let i = 0; i < modalQty; i++) {
+          addToCart(product.id);
+        }
+
+        // Bounce the cart badge
+        if (badge) {
+          badge.classList.remove("is-bouncing");
+          void badge.offsetWidth; // force reflow
+          badge.classList.add("is-bouncing");
+          badge.addEventListener("animationend", () => {
+            badge.classList.remove("is-bouncing");
+          }, { once: true });
+        }
+        // Pulse the cart button
+        if (cartBtn) {
+          cartBtn.classList.remove("is-pulsing");
+          void cartBtn.offsetWidth;
+          cartBtn.classList.add("is-pulsing");
+          cartBtn.addEventListener("animationend", () => {
+            cartBtn.classList.remove("is-pulsing");
+          }, { once: true });
+        }
+      }, { once: false });
+    } else {
+      // Fallback: no image or no cart button visible
+      for (let i = 0; i < modalQty; i++) {
+        addToCart(product.id);
+      }
+      closeProductModal();
     }
-    closeProductModal();
   });
   actions.appendChild(addBtn);
 

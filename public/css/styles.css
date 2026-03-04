@@ -733,6 +733,71 @@ button {
   background-color: #f16812;
 }
 
+/* Fly-to-cart animation */
+.fly-to-cart {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: none;
+  will-change: transform, top, left, width, height, opacity;
+}
+
+.fly-to-cart.is-flying {
+  transition: top 0.65s cubic-bezier(0.2, 0.9, 0.3, 1),
+    left 0.65s cubic-bezier(0.2, 0.9, 0.3, 1),
+    width 0.65s cubic-bezier(0.2, 0.9, 0.3, 1),
+    height 0.65s cubic-bezier(0.2, 0.9, 0.3, 1),
+    opacity 0.65s ease,
+    border-radius 0.65s ease;
+}
+
+@keyframes cartBadgeBounce {
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.5);
+  }
+
+  50% {
+    transform: scale(0.85);
+  }
+
+  70% {
+    transform: scale(1.25);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-cart-count.is-bouncing {
+  animation: cartBadgeBounce 0.5s ease;
+}
+
+@keyframes cartButtonPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-cart.is-pulsing {
+  animation: cartButtonPulse 0.4s ease;
+}
+
 /* Confirmation */
 .screen--confirmation {
   align-items: center;
