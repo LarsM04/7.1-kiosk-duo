@@ -179,7 +179,7 @@ button {
 }
 
 .logo-dino {
-  width: 96px;
+  width: 140px;
   height: auto;
 }
 
@@ -279,8 +279,8 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 8px 40px;
-  gap: 16px;
+  padding: 16px 8px 30px;
+  gap: 6px;
 }
 
 .menu-sidebar-header {
@@ -337,23 +337,30 @@ button {
   padding: 16px 16px 20px;
 }
 
+.menu-bottombar {
+  position: absolute;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  background-color: var(--color-dark-blue);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .menu-topbar {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
-  padding-right: 260px; /* ruimte reserveren voor grote winkelwagenknop */
 }
 
 .btn-cart {
-  position: absolute;
-  top: 0;
-  right: 0;
-  border-radius: 999px;
+  border-radius: 0;
   border: none;
   padding: 16px 28px;
-  background-color: var(--color-dark-blue);
+  background-color: var(--color-orange);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -361,20 +368,21 @@ button {
   cursor: pointer;
   transition: transform 0.16s ease, box-shadow 0.16s ease,
     background-color 0.16s ease;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .btn-cart-count {
-  min-width: 40px;
-  min-height: 40px;
-  padding: 4px 10px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 6px 12px;
   border-radius: 999px;
   background-color: var(--color-orange);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
 }
 
 .btn-cart:hover {
