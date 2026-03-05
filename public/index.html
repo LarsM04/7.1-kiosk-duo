@@ -12,6 +12,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Preload first splash image -->
+  <link rel="preload" as="image"
+    href="assets/images/DALLE_2025-01-22_16.00.35_-_A_photorealistic_depiction_of_a_smoothie_called_Green_Glow_Smoothie._The_drink_is_served_in_a_clear_glass_showcasing_its_vibrant_green_color_made_%20(1).webp" />
 </head>
 
 <body>
@@ -19,7 +23,9 @@
     <div class="kiosk-frame">
       <!-- Splash screen -->
       <section id="screen-splash" class="screen screen--active screen--splash" data-screen="splash">
-        <div id="splash-bg-1" class="splash-bg-layer"></div>
+        <div id="splash-bg-1" class="splash-bg-layer is-visible"
+          style="background-image: url('assets/images/DALLE_2025-01-22_16.00.35_-_A_photorealistic_depiction_of_a_smoothie_called_Green_Glow_Smoothie._The_drink_is_served_in_a_clear_glass_showcasing_its_vibrant_green_color_made_%20(1).webp');">
+        </div>
         <div id="splash-bg-2" class="splash-bg-layer"></div>
         <button class="screen-splash-hit-area" data-action="start-order">
           <div class="screen-splash-overlay">

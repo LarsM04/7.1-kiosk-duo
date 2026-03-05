@@ -112,12 +112,14 @@ button {
   background-size: cover;
   background-repeat: no-repeat;
   opacity: 0;
-  transition: opacity 1s ease-in-out;
+  transform: scale(1);
+  transition: opacity 1s ease-in-out, transform 8s linear;
   z-index: 0;
 }
 
 .splash-bg-layer.is-visible {
   opacity: 1;
+  transform: scale(1.05);
 }
 
 .screen-splash-hit-area {
@@ -286,14 +288,14 @@ button {
 }
 
 .logo-dino-small {
-  width: 120px;
+  width: 240px;
   height: auto;
 }
 
 .menu-categories {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 2px;
   width: 100%;
   flex: 1;
   justify-content: space-between;
@@ -583,8 +585,8 @@ button {
 .product-modal-dialog {
   position: relative;
   z-index: 41;
-  width: min(480px, 90vw);
-  max-height: 85vh;
+  width: min(720px, 90vw);
+  max-height: 95vh;
   overflow-y: auto;
   border-radius: var(--radius-lg);
   background-color: #ffffff;
@@ -597,7 +599,7 @@ button {
 
 .product-modal-image {
   width: 100%;
-  height: 260px;
+  height: 390px;
   object-fit: cover;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   display: block;
