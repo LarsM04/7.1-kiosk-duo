@@ -14,10 +14,9 @@ const AppState = {
 
 // Afbeeldingen voor het splash-screen (pas paden aan naar jouw bestanden)
 const splashImages = [
-  "assets/images/DALLE_2025-01-22_16.00.35_-_A_photorealistic_depiction_of_a_smoothie_called_Green_Glow_Smoothie._The_drink_is_served_in_a_clear_glass_showcasing_its_vibrant_green_color_made_ (1).webp",
+  "assets/images/Gemini_Generated_Image_p1ej7kp1ej7kp1ej.webp",
   "assets/images/Gemini_Generated_Image_5aqrk45aqrk45aqr.webp",
   "assets/images/Gemini_Generated_Image_gvlyv5gvlyv5gvly.webp",
-  "assets/images/Gemini_Generated_Image_p1ej7kp1ej7kp1ej.webp",
 ];
 
 const SplashSlideshow = {
