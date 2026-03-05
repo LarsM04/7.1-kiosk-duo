@@ -145,16 +145,74 @@ button {
   background: linear-gradient(to top,
       rgba(5, 54, 49, 0.82),
       rgba(5, 54, 49, 0.1));
+  transition: opacity 0.4s ease;
 }
 
 .logo-stack {
   margin-bottom: 24px;
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s ease 0.4s;
+  will-change: transform, opacity;
 }
 
 .logo-main {
   max-width: 80%;
   height: auto;
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+}
+
+/* Zoom-through-logo transition */
+.screen--splash.is-zooming .splash-bg-layer {
+  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s ease 0.3s;
+  transform: scale(3) !important;
+  opacity: 0 !important;
+}
+
+.screen--splash.is-zooming .logo-stack {
+  transform: scale(20);
+  opacity: 0;
+}
+
+.screen--splash.is-zooming .screen-splash-overlay .heading {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* Flash overlay that appears during zoom */
+.splash-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: radial-gradient(circle at center,
+      rgba(222, 255, 120, 0.95),
+      rgba(140, 208, 3, 0.8),
+      rgba(5, 54, 49, 0.9));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.screen--splash.is-zooming .splash-flash {
+  opacity: 1;
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+/* Welcome screen entrance animation */
+.screen--welcome.is-entering {
+  animation: welcomeEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes welcomeEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Welcome screen */
@@ -270,7 +328,7 @@ button {
 /* Menu screen */
 .screen--menu {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 280px 1fr;
   background-color: #ffffff;
 }
 
@@ -295,16 +353,14 @@ button {
 .menu-categories {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
   width: 100%;
-  flex: 1;
-  justify-content: space-between;
 }
 
 .category-tile {
   width: 100%;
   border-radius: var(--radius-md);
-  padding: 12px 8px 12px;
+  padding: 6px;
   background-color: var(--color-orange);
   color: #ffffff;
   border: none;
@@ -312,23 +368,43 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.category-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
+}
+
+.category-tile:active {
+  transform: scale(0.97);
+  background-color: #f16812;
 }
 
 .category-tile__image {
   width: 100%;
-  border-radius: var(--radius-sm);
-  height: 96px;
+  border-radius: calc(var(--radius-md) - 6px);
+  height: 110px;
   object-fit: cover;
+  display: block;
 }
 
 .category-tile__label {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 6px 4px 4px;
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .category-tile--active {
   outline: 3px solid var(--color-light-green);
+  background-color: #e5680a;
 }
 
 .menu-main {
@@ -340,7 +416,7 @@ button {
 .menu-bottombar {
   position: absolute;
   bottom: 0;
-  left: 240px;
+  left: 280px;
   right: 0;
   background-color: var(--color-dark-blue);
   padding: 12px 20px;
@@ -410,7 +486,7 @@ button {
   padding: 8px 8px 10px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  height: 100%;
   aspect-ratio: 1 / 1;
   cursor: pointer;
   box-shadow: var(--shadow-soft);
@@ -439,7 +515,8 @@ button {
 
 .product-tile__image {
   width: 100%;
-  height: calc(100% - 50px);
+  flex: 1;
+  min-height: 0;
   object-fit: cover;
   margin-bottom: 8px;
   border-radius: var(--radius-sm);

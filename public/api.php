@@ -16,12 +16,12 @@ try {
     $productsDb = $stmtProds->fetchAll(PDO::FETCH_ASSOC);
 
     $catIdMap = [
-        1 => ['id' => 'ontbijt', 'labelKey' => 'catBreakfast', 'image' => 'assets/images/cat-ontbijt.jpg'],
-        2 => ['id' => 'lunch', 'labelKey' => 'catLunch', 'image' => 'assets/images/cat-lunch.jpg'],
-        3 => ['id' => 'handheld', 'labelKey' => 'catHandheld', 'image' => 'assets/images/cat-handheld.jpg'],
-        4 => ['id' => 'sides', 'labelKey' => 'catSides', 'image' => 'assets/images/cat-sides.jpg'],
-        5 => ['id' => 'dips', 'labelKey' => 'catDips', 'image' => 'assets/images/cat-dips.jpg'],
-        6 => ['id' => 'drankjes', 'labelKey' => 'catDrinks', 'image' => 'assets/images/cat-drankjes.jpg'],
+        1 => ['id' => 'ontbijt', 'labelKey' => 'catBreakfast'],
+        2 => ['id' => 'lunch', 'labelKey' => 'catLunch'],
+        3 => ['id' => 'handheld', 'labelKey' => 'catHandheld'],
+        4 => ['id' => 'sides', 'labelKey' => 'catSides'],
+        5 => ['id' => 'dips', 'labelKey' => 'catDips'],
+        6 => ['id' => 'drankjes', 'labelKey' => 'catDrinks'],
     ];
 
     $mappedCategories = [];
@@ -32,6 +32,7 @@ try {
         if (isset($catIdMap[$cid])) {
             $mapped = $catIdMap[$cid];
             $mapped['name'] = $cat['name'];
+            $mapped['image'] = '';
             $mappedCategories[] = $mapped;
             $productsByCategory[$mapped['id']] = [];
         } else {
@@ -53,6 +54,8 @@ try {
         if (!isset($productsByCategory[$stringId]))
             continue;
 
+        $productImage = $p['filename'] ? 'assets/images/menu/' . $p['filename'] : null;
+
         $productsByCategory[$stringId][] = [
             'id' => 'prod-' . $p['product_id'],
             'nameKey' => '',
@@ -60,9 +63,21 @@ try {
             'description' => $p['description'] ?? '',
             'kcal' => $p['kcal'] !== null ? (int) $p['kcal'] : null,
             'price' => (float) $p['price'],
-            'image' => $p['filename'] ? 'assets/images/menu/' . $p['filename'] : null
+            'image' => $productImage
         ];
     }
+
+    // Set each category's image to the first product image from that category
+    foreach ($mappedCategories as &$cat) {
+        $catProducts = $productsByCategory[$cat['id']] ?? [];
+        foreach ($catProducts as $prod) {
+            if (!empty($prod['image'])) {
+                $cat['image'] = $prod['image'];
+                break;
+            }
+        }
+    }
+    unset($cat);
 
     echo json_encode([
         'categories' => $mappedCategories,
