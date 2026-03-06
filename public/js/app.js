@@ -757,12 +757,19 @@ function renderCartItems() {
 
   container.innerHTML = "";
 
+  // Remove any existing total row
+  const existingTotal = document.getElementById("cart-total-row");
+  if (existingTotal) existingTotal.remove();
+
   if (AppState.cart.length === 0) {
     const empty = document.createElement("div");
+    empty.style.cssText = "color:rgba(255,255,255,0.55);text-align:center;padding:60px 0;font-size:1.15rem;";
     empty.textContent = getTranslation("cartTitle_zero");
     container.appendChild(empty);
     return;
   }
+
+  let grandTotal = 0;
 
   AppState.cart.forEach((item) => {
     const product = getProductById(item.productId);
@@ -771,10 +778,48 @@ function renderCartItems() {
     const row = document.createElement("div");
     row.className = "cart-item";
 
+    // Product image
+    if (product.image) {
+      const img = document.createElement("img");
+      img.src = product.image;
+      img.alt = product.name || "";
+      img.className = "cart-item__image";
+      row.appendChild(img);
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "cart-item__image--placeholder";
+      placeholder.textContent = "🥗";
+      row.appendChild(placeholder);
+    }
+
+    // Info block
+    const info = document.createElement("div");
+    info.className = "cart-item__info";
+
     const nameEl = document.createElement("div");
     nameEl.className = "cart-item__name";
     nameEl.textContent =
       getTranslation(product.nameKey) || product.name || product.id.replace(/-/g, " ");
+    info.appendChild(nameEl);
+
+    const unitPrice = document.createElement("div");
+    unitPrice.className = "cart-item__unit-price";
+    unitPrice.textContent = formatPrice(product.price) + " / stuk";
+    info.appendChild(unitPrice);
+
+    row.appendChild(info);
+
+    // Right block: price + controls
+    const right = document.createElement("div");
+    right.className = "cart-item__right";
+
+    const lineTotal = product.price * item.quantity;
+    grandTotal += lineTotal;
+
+    const priceEl = document.createElement("div");
+    priceEl.className = "cart-item__price";
+    priceEl.textContent = formatPrice(lineTotal);
+    right.appendChild(priceEl);
 
     const controls = document.createElement("div");
     controls.className = "cart-item__controls";
@@ -802,18 +847,31 @@ function renderCartItems() {
     controls.appendChild(qtySpan);
     controls.appendChild(plusBtn);
 
-    const priceEl = document.createElement("div");
-    priceEl.className = "cart-item__price";
-
-    const lineTotal = product.price * item.quantity;
-    priceEl.textContent = formatPrice(lineTotal);
-
-    row.appendChild(nameEl);
-    row.appendChild(controls);
-    row.appendChild(priceEl);
+    right.appendChild(controls);
+    row.appendChild(right);
 
     container.appendChild(row);
   });
+
+  // Insert total row between cart-main and cart-footer
+  const cartFooter = document.querySelector(".cart-footer");
+  if (cartFooter) {
+    const totalRow = document.createElement("div");
+    totalRow.className = "cart-total-row";
+    totalRow.id = "cart-total-row";
+
+    const totalLabel = document.createElement("span");
+    totalLabel.className = "cart-total-label";
+    totalLabel.textContent = "Totaal";
+    totalRow.appendChild(totalLabel);
+
+    const totalAmount = document.createElement("span");
+    totalAmount.className = "cart-total-amount";
+    totalAmount.textContent = formatPrice(grandTotal);
+    totalRow.appendChild(totalAmount);
+
+    cartFooter.parentNode.insertBefore(totalRow, cartFooter);
+  }
 }
 
 function openCartScreen() {
