@@ -112,14 +112,12 @@ button {
   background-size: cover;
   background-repeat: no-repeat;
   opacity: 0;
-  transform: scale(1);
-  transition: opacity 1s ease-in-out, transform 8s linear;
+  transition: opacity 1s ease-in-out;
   z-index: 0;
 }
 
 .splash-bg-layer.is-visible {
   opacity: 1;
-  transform: scale(1.05);
 }
 
 .screen-splash-hit-area {
@@ -150,9 +148,6 @@ button {
 
 .logo-stack {
   margin-bottom: 24px;
-  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.6s ease 0.4s;
-  will-change: transform, opacity;
 }
 
 .logo-main {
@@ -161,59 +156,6 @@ button {
   filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
 }
 
-/* Zoom-through-logo transition */
-.screen--splash.is-zooming .splash-bg-layer {
-  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.6s ease 0.3s;
-  transform: scale(3) !important;
-  opacity: 0 !important;
-}
-
-.screen--splash.is-zooming .logo-stack {
-  transform: scale(20);
-  opacity: 0;
-}
-
-.screen--splash.is-zooming .screen-splash-overlay .heading {
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-/* Flash overlay that appears during zoom */
-.splash-flash {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  background: radial-gradient(circle at center,
-      rgba(222, 255, 120, 0.95),
-      rgba(140, 208, 3, 0.8),
-      rgba(5, 54, 49, 0.9));
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.screen--splash.is-zooming .splash-flash {
-  opacity: 1;
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
-}
-
-/* Welcome screen entrance animation */
-.screen--welcome.is-entering {
-  animation: welcomeEnter 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes welcomeEnter {
-  0% {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
 /* Welcome screen */
 .screen--welcome {

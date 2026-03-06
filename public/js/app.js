@@ -227,33 +227,8 @@ function startOrder() {
     AppState.selectedLanguage = "nl";
   }
   clearConfirmationTimer();
-
-  // Trigger zoom-through-logo animation
-  const splashScreen = document.getElementById("screen-splash");
-  if (splashScreen) {
-    splashScreen.classList.add("is-zooming");
-  }
-
-  // After the zoom animation completes, show the welcome screen
-  setTimeout(() => {
-    // Show welcome screen
-    showScreen("welcome");
-    applyTranslations();
-
-    // Add entrance animation to welcome screen
-    const welcomeScreen = document.getElementById("screen-welcome");
-    if (welcomeScreen) {
-      welcomeScreen.classList.add("is-entering");
-      welcomeScreen.addEventListener("animationend", () => {
-        welcomeScreen.classList.remove("is-entering");
-      }, { once: true });
-    }
-
-    // Clean up zoom class for next time
-    if (splashScreen) {
-      splashScreen.classList.remove("is-zooming");
-    }
-  }, 1000);
+  showScreen("welcome");
+  applyTranslations();
 }
 
 function setOrderType(type) {
