@@ -24,6 +24,62 @@ try {
         6 => ['id' => 'drankjes', 'labelKey' => 'catDrinks'],
     ];
 
+    $productNameKeyMap = [
+        1  => 'prodAcaiBowl',
+        2  => 'prodGardenWrap',
+        3  => 'prodPBCacaoToast',
+        4  => 'prodOvernightOats',
+        5  => 'prodTofuTahiniBowl',
+        6  => 'prodSupergreenHarvest',
+        7  => 'prodFalafelBowl',
+        8  => 'prodTeriyakiTempeh',
+        9  => 'prodChickpeaWrap',
+        10 => 'prodHalloumiToastie',
+        11 => 'prodJackfruitSlider',
+        12 => 'prodSweetPotatoWedges',
+        13 => 'prodZucchiniFries',
+        14 => 'prodFalafelBites',
+        15 => 'prodVeggiePlatter',
+        16 => 'prodClassicHummus',
+        17 => 'prodAvocadoLime',
+        18 => 'prodGreekRanch',
+        19 => 'prodSrirachaMayo',
+        20 => 'prodPeanutSatay',
+        21 => 'prodGreenGlow',
+        22 => 'prodIcedMatcha',
+        23 => 'prodInfusedWater',
+        24 => 'prodBerryBlast',
+        25 => 'prodCitrusCooler',
+    ];
+
+    $productDescKeyMap = [
+        1  => 'descAcaiBowl',
+        2  => 'descGardenWrap',
+        3  => 'descPBCacaoToast',
+        4  => 'descOvernightOats',
+        5  => 'descTofuTahiniBowl',
+        6  => 'descSupergreenHarvest',
+        7  => 'descFalafelBowl',
+        8  => 'descTeriyakiTempeh',
+        9  => 'descChickpeaWrap',
+        10 => 'descHalloumiToastie',
+        11 => 'descJackfruitSlider',
+        12 => 'descSweetPotatoWedges',
+        13 => 'descZucchiniFries',
+        14 => 'descFalafelBites',
+        15 => 'descVeggiePlatter',
+        16 => 'descClassicHummus',
+        17 => 'descAvocadoLime',
+        18 => 'descGreekRanch',
+        19 => 'descSrirachaMayo',
+        20 => 'descPeanutSatay',
+        21 => 'descGreenGlow',
+        22 => 'descIcedMatcha',
+        23 => 'descInfusedWater',
+        24 => 'descBerryBlast',
+        25 => 'descCitrusCooler',
+    ];
+
     $mappedCategories = [];
     $productsByCategory = [];
 
@@ -58,7 +114,8 @@ try {
 
         $productsByCategory[$stringId][] = [
             'id' => 'prod-' . $p['product_id'],
-            'nameKey' => '',
+            'nameKey' => $productNameKeyMap[(int)$p['product_id']] ?? '',
+            'descKey' => $productDescKeyMap[(int)$p['product_id']] ?? '',
             'name' => $p['name'],
             'description' => $p['description'] ?? '',
             'kcal' => $p['kcal'] !== null ? (int) $p['kcal'] : null,
