@@ -480,7 +480,7 @@ button {
 .menu-categories {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 30px;
   width: 100%;
 }
 
@@ -1157,37 +1157,259 @@ button {
   animation: cartButtonPulse 0.4s ease;
 }
 
-/* Confirmation */
+/* Confirmation / Receipt */
 .screen--confirmation {
   align-items: center;
   justify-content: center;
   background-color: var(--color-dark-blue);
   padding: 24px;
+  overflow-y: auto;
 }
 
-.confirmation-card {
-  background-color: var(--color-light-green);
+/* Receipt paper */
+.receipt {
+  background-color: #fff;
+  width: 100%;
+  max-width: 680px;
   border-radius: var(--radius-lg);
-  padding: 32px 24px 28px;
-  box-shadow: var(--shadow-soft);
-  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 5px var(--color-green);
+  overflow: hidden;
+  font-family: "Noto Sans", system-ui, sans-serif;
   color: var(--color-dark-blue);
-  min-width: 260px;
+  font-size: 1.25rem;
 }
 
-.confirmation-title {
-  margin-bottom: 18px;
+/* Header strip */
+.receipt__header {
+  background: linear-gradient(135deg, var(--color-dark-blue) 0%, #0a5248 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 28px 28px;
+  gap: 8px;
 }
 
-.confirmation-label {
-  font-size: 1.05rem;
-  margin-bottom: 6px;
+.receipt__logo {
+  width: 240px;
+  height: auto;
+  object-fit: contain;
 }
 
-.confirmation-number {
-  font-size: 3rem;
+.receipt__brand {
+  display: none;
+}
+
+.receipt__tagline {
+  font-size: 1.1rem;
+  color: var(--color-green);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+
+/* Dividers */
+.receipt__divider {
+  margin: 0;
+  border: none;
+  height: 1px;
+}
+
+.receipt__divider--dashed {
+  border-top: 2px dashed #c5e8a0;
+}
+
+.receipt__divider--solid {
+  border-top: 2px solid var(--color-green);
+}
+
+/* Meta section */
+.receipt__meta {
+  padding: 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #f7fdf0;
+}
+
+.receipt__meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  color: #3a5a3a;
+}
+
+.receipt__meta-row span:first-child {
   font-weight: 700;
   color: var(--color-dark-blue);
+}
+
+.receipt__meta-row--order {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px solid #d6f0b0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.receipt__order-number {
+  font-family: "Renos Rough", sans-serif;
+  font-size: 2.6rem;
+  color: var(--color-orange);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Items header */
+.receipt__items-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0 16px;
+  padding: 14px 32px 10px;
+  background-color: var(--color-dark-blue);
+  color: var(--color-light-green);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Items list */
+.receipt__items {
+  list-style: none;
+  margin: 0;
+  padding: 12px 32px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: #fff;
+}
+
+.receipt__item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px dotted #dceacc;
+  font-size: 1.2rem;
+}
+
+.receipt__item:last-child {
+  border-bottom: none;
+}
+
+.receipt__item-name {
+  color: var(--color-dark-blue);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.receipt__item-qty {
+  color: var(--color-orange);
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+.receipt__item-price {
+  font-weight: 700;
+  color: var(--color-dark-blue);
+  text-align: right;
+  white-space: nowrap;
+  font-size: 1.2rem;
+}
+
+/* Totals */
+.receipt__totals {
+  padding: 16px 32px;
+  background-color: #f7fdf0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.receipt__total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  color: #3a5a3a;
+}
+
+.receipt__total-row span:first-child {
+  font-weight: 500;
+}
+
+.receipt__total-row span:last-child {
+  font-weight: 700;
+}
+
+/* Grand total */
+.receipt__grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 32px;
+  background: linear-gradient(135deg, var(--color-dark-blue) 0%, #0a5248 100%);
+  color: var(--color-light-green);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.receipt__grand-total span:last-child {
+  color: var(--color-green);
+  font-size: 2.1rem;
+}
+
+/* Thank you */
+.receipt__thankyou {
+  padding: 28px 32px 14px;
+  text-align: center;
+  background-color: #fff;
+}
+
+.receipt__thankyou-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-dark-blue);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.receipt__thankyou-sub {
+  font-size: 1.15rem;
+  color: #4a6a4a;
+  line-height: 1.5;
+}
+
+/* Countdown bar */
+.receipt__countdown {
+  padding: 14px 32px 24px;
+  background-color: #fff;
+}
+
+.receipt__countdown-bar {
+  height: 8px;
+  background-color: #dceacc;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.receipt__countdown-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--color-orange), var(--color-green));
+  border-radius: 4px;
+}
+
+.receipt__countdown-text {
+  font-size: 0.85rem;
+  color: #7a9a7a;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
 }
 
 /* Helpers */

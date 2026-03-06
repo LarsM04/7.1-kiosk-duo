@@ -44,8 +44,21 @@ const translations = {
     cartTitle_other: "{count} items in uw winkelwagen",
     continueShopping: "Verder winkelen",
     completeOrder: "Bestelling afronden",
-    thankYou: "Bedankt voor uw bestelling",
-    yourOrderNumber: "Je ordernummer:",
+    thankYou: "Bedankt voor uw bestelling!",
+    yourOrderNumber: "Bestelnummer:",
+    receiptDate: "Datum:",
+    receiptTime: "Tijd:",
+    receiptOrderType: "Type:",
+    receiptOrderTypeHere: "Hier eten",
+    receiptOrderTypeTakeaway: "Meenemen",
+    receiptItem: "Artikel",
+    receiptQty: "Aantal",
+    receiptPrice: "Prijs",
+    receiptSubtotal: "Subtotaal",
+    receiptVat: "BTW (9%)",
+    receiptTotal: "TOTAAL",
+    receiptSub: "Uw bestelling wordt zo snel mogelijk bereid.",
+    receiptCountdown: "Scherm sluit automatisch",
     modalAddToCart: "Toevoegen",
     modalKcal: "kcal",
     // Beschrijvingen
@@ -126,8 +139,21 @@ const translations = {
     cartTitle_other: "{count} Artikel im Warenkorb",
     continueShopping: "Weiter einkaufen",
     completeOrder: "Bestellung abschließen",
-    thankYou: "Danke für deine Bestellung",
-    yourOrderNumber: "Deine Bestellnummer:",
+    thankYou: "Danke für Ihre Bestellung!",
+    yourOrderNumber: "Bestellnummer:",
+    receiptDate: "Datum:",
+    receiptTime: "Uhrzeit:",
+    receiptOrderType: "Typ:",
+    receiptOrderTypeHere: "Hier essen",
+    receiptOrderTypeTakeaway: "Mitnehmen",
+    receiptItem: "Artikel",
+    receiptQty: "Menge",
+    receiptPrice: "Preis",
+    receiptSubtotal: "Zwischensumme",
+    receiptVat: "MwSt. (9%)",
+    receiptTotal: "GESAMT",
+    receiptSub: "Ihre Bestellung wird so schnell wie möglich zubereitet.",
+    receiptCountdown: "Bildschirm schließt automatisch",
     modalAddToCart: "Hinzufügen",
     modalKcal: "kcal",
     // Beschreibungen
@@ -208,8 +234,21 @@ const translations = {
     cartTitle_other: "{count} items in your cart",
     continueShopping: "Continue shopping",
     completeOrder: "Complete order",
-    thankYou: "Thank you for your order",
-    yourOrderNumber: "Your order number:",
+    thankYou: "Thank you for your order!",
+    yourOrderNumber: "Order number:",
+    receiptDate: "Date:",
+    receiptTime: "Time:",
+    receiptOrderType: "Type:",
+    receiptOrderTypeHere: "Eat here",
+    receiptOrderTypeTakeaway: "Take away",
+    receiptItem: "Item",
+    receiptQty: "Qty",
+    receiptPrice: "Price",
+    receiptSubtotal: "Subtotal",
+    receiptVat: "VAT (9%)",
+    receiptTotal: "TOTAL",
+    receiptSub: "Your order will be prepared as soon as possible.",
+    receiptCountdown: "Screen closes automatically",
     modalAddToCart: "Add to cart",
     modalKcal: "kcal",
     // Descriptions
@@ -889,23 +928,91 @@ function generateOrderNumber() {
 
 function checkout() {
   if (AppState.cart.length === 0) {
-    // Geen bestelling, ga terug naar menu
     showScreen("menu");
     return;
   }
 
   const number = generateOrderNumber();
+  const cartSnapshot = [...AppState.cart];
   AppState.cart = [];
   AppState.orderNumber = number;
 
+  // Order number
   const orderNumberEl = document.getElementById("order-number");
   if (orderNumberEl) {
-    orderNumberEl.textContent = String(number).padStart(2, "0");
+    orderNumberEl.textContent = String(number).padStart(3, "0");
+  }
+
+  // Date & time (locale based on selected language)
+  const localeMap = { nl: "nl-NL", de: "de-DE", en: "en-GB" };
+  const locale = localeMap[AppState.selectedLanguage] || "nl-NL";
+  const now = new Date();
+  const dateEl = document.getElementById("receipt-date");
+  const timeEl = document.getElementById("receipt-time");
+  if (dateEl) dateEl.textContent = now.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
+  if (timeEl) timeEl.textContent = now.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+
+  // Order type
+  const orderTypeEl = document.getElementById("receipt-order-type");
+  const orderTypeKey = AppState.orderType === "takeaway" ? "receiptOrderTypeTakeaway" : "receiptOrderTypeHere";
+
+  // Items list
+  const itemsEl = document.getElementById("receipt-items");
+  if (itemsEl) {
+    itemsEl.innerHTML = "";
+    let subtotal = 0;
+    cartSnapshot.forEach((item) => {
+      const product = getProductById(item.productId);
+      if (!product) return;
+      const lineTotal = product.price * item.quantity;
+      subtotal += lineTotal;
+      const li = document.createElement("li");
+      li.className = "receipt__item";
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "receipt__item-name";
+      nameSpan.textContent = getTranslation(product.nameKey) || product.nameKey;
+      const qtySpan = document.createElement("span");
+      qtySpan.className = "receipt__item-qty";
+      qtySpan.textContent = `× ${item.quantity}`;
+      const priceSpan = document.createElement("span");
+      priceSpan.className = "receipt__item-price";
+      priceSpan.textContent = formatPrice(lineTotal);
+      li.appendChild(nameSpan);
+      li.appendChild(qtySpan);
+      li.appendChild(priceSpan);
+      itemsEl.appendChild(li);
+    });
+
+    const vatRate = 0.09;
+    const excl = subtotal / (1 + vatRate);
+    const vat = subtotal - excl;
+
+    const subtotalEl = document.getElementById("receipt-subtotal");
+    const vatEl = document.getElementById("receipt-vat");
+    const totalEl = document.getElementById("receipt-total");
+    if (subtotalEl) subtotalEl.textContent = formatPrice(excl);
+    if (vatEl) vatEl.textContent = formatPrice(vat);
+    if (totalEl) totalEl.textContent = formatPrice(subtotal);
+  }
+
+  // Animate countdown bar
+  const fill = document.getElementById("receipt-countdown-fill");
+  if (fill) {
+    fill.style.transition = "none";
+    fill.style.width = "100%";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        fill.style.transition = "width 8s linear";
+        fill.style.width = "0%";
+      });
+    });
   }
 
   updateCartUI();
   showScreen("confirmation");
   applyTranslations();
+  // Re-apply order type text after translations
+  if (orderTypeEl) orderTypeEl.textContent = getTranslation(orderTypeKey);
   scheduleResetToSplash();
 }
 

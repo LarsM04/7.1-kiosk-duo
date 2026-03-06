@@ -147,16 +147,88 @@
         </footer>
       </section>
 
-      <!-- Confirmation screen -->
+      <!-- Confirmation screen / Bon -->
       <section id="screen-confirmation" class="screen screen--confirmation" data-screen="confirmation" hidden>
-        <div class="confirmation-card">
-          <div class="heading heading--lg heading--outline confirmation-title" data-i18n-key="thankYou">
-            Bedankt voor uw bestelling
+        <div class="receipt">
+          <!-- Receipt header -->
+          <div class="receipt__header">
+            <img src="assets/images/logo_big_complete_transparent.png" alt="Happy Herbivore" class="receipt__logo" />
+            <div class="receipt__brand">Happy Herbivore</div>
+            <div class="receipt__tagline">🌿 100% Plant-Based</div>
           </div>
-          <div class="confirmation-label" data-i18n-key="yourOrderNumber">
-            Je ordernummer:
+
+          <div class="receipt__divider receipt__divider--dashed"></div>
+
+          <!-- Meta info -->
+          <div class="receipt__meta">
+            <div class="receipt__meta-row">
+              <span data-i18n-key="receiptDate">Datum:</span>
+              <span id="receipt-date"></span>
+            </div>
+            <div class="receipt__meta-row">
+              <span data-i18n-key="receiptTime">Tijd:</span>
+              <span id="receipt-time"></span>
+            </div>
+            <div class="receipt__meta-row">
+              <span data-i18n-key="receiptOrderType">Type:</span>
+              <span id="receipt-order-type"></span>
+            </div>
+            <div class="receipt__meta-row receipt__meta-row--order">
+              <span data-i18n-key="yourOrderNumber">Bestelnummer:</span>
+              <span id="order-number" class="receipt__order-number">—</span>
+            </div>
           </div>
-          <div id="order-number" class="confirmation-number">12</div>
+
+          <div class="receipt__divider receipt__divider--dashed"></div>
+
+          <!-- Items -->
+          <div class="receipt__items-header">
+            <span data-i18n-key="receiptItem">Artikel</span>
+            <span data-i18n-key="receiptQty">Aantal</span>
+            <span data-i18n-key="receiptPrice">Prijs</span>
+          </div>
+          <ul id="receipt-items" class="receipt__items"></ul>
+
+          <div class="receipt__divider receipt__divider--solid"></div>
+
+          <!-- Totals -->
+          <div class="receipt__totals">
+            <div class="receipt__total-row">
+              <span data-i18n-key="receiptSubtotal">Subtotaal</span>
+              <span id="receipt-subtotal">€ 0,00</span>
+            </div>
+            <div class="receipt__total-row">
+              <span id="receipt-vat-label" data-i18n-key="receiptVat">BTW (9%)</span>
+              <span id="receipt-vat">€ 0,00</span>
+            </div>
+          </div>
+
+          <div class="receipt__divider receipt__divider--solid"></div>
+
+          <div class="receipt__grand-total">
+            <span data-i18n-key="receiptTotal">TOTAAL</span>
+            <span id="receipt-total">€ 0,00</span>
+          </div>
+
+          <div class="receipt__divider receipt__divider--dashed"></div>
+
+          <!-- Thank you -->
+          <div class="receipt__thankyou">
+            <div class="receipt__thankyou-title" data-i18n-key="thankYou">
+              Bedankt voor uw bestelling!
+            </div>
+            <div class="receipt__thankyou-sub" data-i18n-key="receiptSub">
+              Uw bestelling wordt zo snel mogelijk bereid.
+            </div>
+          </div>
+
+          <!-- Countdown -->
+          <div class="receipt__countdown">
+            <div class="receipt__countdown-bar">
+              <div id="receipt-countdown-fill" class="receipt__countdown-fill"></div>
+            </div>
+            <div class="receipt__countdown-text" data-i18n-key="receiptCountdown">Scherm sluit automatisch</div>
+          </div>
         </div>
       </section>
     </div>
