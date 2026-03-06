@@ -227,8 +227,43 @@ function startOrder() {
     AppState.selectedLanguage = "nl";
   }
   clearConfirmationTimer();
-  showScreen("welcome");
-  applyTranslations();
+
+  const splashEl = document.querySelector('[data-screen="splash"]');
+  const nextId = "welcome";
+  const nextEl = document.querySelector(`[data-screen="${nextId}"]`);
+
+  if (!splashEl || !nextEl) {
+    showScreen(nextId);
+    applyTranslations();
+    return;
+  }
+
+  const DURATION = 550; // must match CSS animation duration in ms
+
+  // Prepare next screen: visible but behind, no pointer events yet
+  nextEl.style.display = "flex";
+  nextEl.style.opacity = "0";
+  nextEl.hidden = false;
+  nextEl.classList.add("screen--entering");
+
+  // Animate splash out
+  splashEl.classList.add("screen--leaving");
+
+  setTimeout(() => {
+    // Clean up splash
+    splashEl.classList.remove("screen--active", "screen--leaving");
+    splashEl.style.display = "";
+    splashEl.hidden = true;
+
+    // Clean up next screen
+    nextEl.classList.remove("screen--entering");
+    nextEl.style.opacity = "";
+    nextEl.classList.add("screen--active");
+
+    AppState.currentScreen = nextId;
+    stopSplashSlideshow();
+    applyTranslations();
+  }, DURATION);
 }
 
 function setOrderType(type) {
