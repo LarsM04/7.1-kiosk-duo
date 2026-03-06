@@ -29,9 +29,11 @@
         <button class="screen-splash-hit-area" data-action="start-order">
           <div class="screen-splash-overlay">
             <div class="logo-stack">
-              <img src="assets/images/logo_big_complete_transparent.png" alt="Happy Herbivore" class="logo-main" />
+              <div class="logo-circle">
+                <img src="assets/images/logo_big_complete_transparent.png" alt="Happy Herbivore" class="logo-main" />
+              </div>
             </div>
-            <div class="heading heading--xl heading--outline" data-i18n-key="tapToOrder">
+            <div class="splash-tap-badge" data-i18n-key="tapToOrder">
               Tik om te bestellen
             </div>
           </div>
@@ -54,13 +56,19 @@
           </div>
         </header>
 
+        <div class="welcome-divider">
+          <span class="welcome-divider-text" data-i18n-key="howToOrder">Hoe wil je bestellen?</span>
+        </div>
+
         <main class="welcome-main">
           <div class="welcome-order-type">
             <button class="btn-tile btn-tile--primary" data-order-type="here">
-              <span data-i18n-key="eatHere">Hier eten</span>
+              <span class="btn-tile-label" data-i18n-key="eatHere">Hier eten</span>
+              <span class="btn-tile-sub" data-i18n-key="eatHereSub">Aan tafel</span>
             </button>
             <button class="btn-tile btn-tile--primary" data-order-type="takeaway">
-              <span data-i18n-key="takeAway">Meenemen</span>
+              <span class="btn-tile-label" data-i18n-key="takeAway">Meenemen</span>
+              <span class="btn-tile-sub" data-i18n-key="takeAwaySub">Om mee te nemen</span>
             </button>
           </div>
         </main>
