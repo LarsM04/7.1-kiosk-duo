@@ -38,28 +38,31 @@ function testPrinter($ip, $port) {
 
 // Verbindingstest
 if (isset($_GET['test'])) {
+    // Check for printer IP in query string (from JavaScript)
+    $testPrinterIp = $_GET['printer_ip'] ?? PRINTER_IP;
+    
     // Als er geen printer IP is ingesteld, returneer dat
-    if (empty(PRINTER_IP) || PRINTER_IP === '192.168.1.100') {
+    if (empty($testPrinterIp) || $testPrinterIp === '192.168.1.100') {
         echo json_encode([
             'success' => false, 
             'error' => 'Geen netwerkprinter geconfigureerd',
-            'hint' => 'Configureer PRINTER_IP in xprint.php of gebruik USB'
+            'hint' => 'Configureer PRINTER_IP in xprint.php of stel het in via de kiosk'
         ]);
         exit;
     }
     
-    if (testPrinter(PRINTER_IP, PRINTER_PORT)) {
+    if (testPrinter($testPrinterIp, PRINTER_PORT)) {
         echo json_encode([
             'success' => true, 
-            'message' => 'Printer bereikbaar op ' . PRINTER_IP,
-            'printer_ip' => PRINTER_IP
+            'message' => 'Printer bereikbaar op ' . $testPrinterIp,
+            'printer_ip' => $testPrinterIp
         ]);
     } else {
         http_response_code(503);
         echo json_encode([
             'success' => false, 
             'error' => "Printer niet bereikbaar op $errstr",
-            'printer_ip' => PRINTER_IP
+            'printer_ip' => $testPrinterIp
         ]);
     }
     exit;
@@ -92,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode([
             'success' => false, 
             'error' => 'Geen netwerkprinter geconfigureerd',
-            'note' => 'Gebruik USB print of configureer printer IP in xprint.php'
+            'hint' => 'Stel printer IP in via de kiosk instellingen of configureer PRINTER_IP in xprint.php'
         ]);
         exit;
     }

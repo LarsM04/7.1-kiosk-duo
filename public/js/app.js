@@ -1035,7 +1035,7 @@ function checkout() {
     }).filter(Boolean);
     const printVat = printSubtotal - printSubtotal / (1 + printVatRate);
 
-    Printer.print({
+    const orderData = {
       orderNumber: number,
       orderType: getTranslation(orderTypeKey),
       items: printItems,
@@ -1044,7 +1044,37 @@ function checkout() {
       total: printSubtotal,
       date: now2.toLocaleDateString(locale2, { day: "2-digit", month: "2-digit", year: "numeric" }),
       time: now2.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" }),
-    });
+    };
+
+    console.log('[App] Starting print job...', orderData);
+    
+    // Print and handle result
+    Printer.print(orderData)
+      .then((success) => {
+        if (success) {
+          console.log('[App] Print successful!');
+        } else {
+          console.warn('[App] Print failed - no printer available');
+          console.log('[App] Printer debug info:', {
+            printMethod: Printer.printMethod,
+            isReady: Printer.isReady,
+            lastError: Printer.lastError,
+            printerIp: Printer.getPrinterIp(),
+            hasUSB: typeof navigator.usb !== 'undefined'
+          });
+          
+          // Toon foutmelding in debug mode
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has('debug') || urlParams.has('printer-debug')) {
+            alert('Print mislukt: ' + (Printer.lastError || 'Geen printer beschikbaar') + '\n\nPrinter IP: ' + (Printer.getPrinterIp() || 'Niet ingesteld'));
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('[App] Print error:', err);
+      });
+  } else {
+    console.warn('[App] Printer not available - Printer object is undefined');
   }
 }
 
@@ -1294,6 +1324,95 @@ const BarcodeScanner = {
   // Initialiseer printer met status callback
   if (typeof Printer !== 'undefined') {
     Printer.init(updatePrinterUI);
+    
+    // Toon printer config knop in debug mode (wanneer URL contains ?debug of ?printer-debug)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('debug') || urlParams.has('printer-debug')) {
+      const configBtn = document.getElementById('printer-config-btn');
+      const printerStatus = document.getElementById('printer-status');
+      if (configBtn) configBtn.style.display = 'block';
+      if (printerStatus) printerStatus.style.display = 'flex';
+    }
   }
 })();
+
+// Printer configuratie functies - globals
+function showPrinterConfig() {
+  const modal = document.getElementById('printer-config-modal');
+  const input = document.getElementById('printer-ip-input');
+  const result = document.getElementById('printer-config-result');
+  
+  // Laad huidige IP
+  const currentIp = Printer.getPrinterIp() || '';
+  input.value = currentIp;
+  
+  // Verberg resultaat
+  result.style.display = 'none';
+  result.className = '';
+  
+  modal.style.display = 'flex';
+}
+
+function closePrinterConfig() {
+  const modal = document.getElementById('printer-config-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function savePrinterConfig() {
+  const input = document.getElementById('printer-ip-input');
+  const result = document.getElementById('printer-config-result');
+  const ip = input.value.trim();
+  
+  if (Printer.configure(ip)) {
+    result.style.display = 'block';
+    result.className = 'success';
+    result.style.background = '#d4edda';
+    result.style.color = '#155724';
+    result.textContent = 'Printer IP opgeslagen: ' + ip;
+    
+    // Test direct de verbinding
+    setTimeout(async () => {
+      const testResult = await Printer.test();
+      if (testResult.available) {
+        result.textContent = 'Printer IP opgeslagen en printer gevonden: ' + ip;
+      } else {
+        result.textContent = 'Printer IP opgeslagen: ' + ip + ' (printer niet bereikbaar, controleer verbinding)';
+      }
+    }, 500);
+  } else {
+    result.style.display = 'block';
+    result.className = 'error';
+    result.style.background = '#f8d7da';
+    result.style.color = '#721c24';
+    result.textContent = Printer.lastError || 'Ongeldig IP adres';
+  }
+}
+
+async function testPrinterConfig() {
+  const input = document.getElementById('printer-ip-input');
+  const result = document.getElementById('printer-config-result');
+  const ip = input.value.trim();
+  
+  result.style.display = 'block';
+  result.style.background = '#fff3cd';
+  result.style.color = '#856404';
+  result.textContent = 'Testen...';
+  
+  // Sla tijdelijk op
+  if (ip) {
+    Printer.printerIp = ip;
+  }
+  
+  const testResult = await Printer.test();
+  
+  if (testResult.available) {
+    result.style.background = '#d4edda';
+    result.style.color = '#155724';
+    result.textContent = 'Printer gevonden via: ' + testResult.method + (testResult.ip ? ' (' + testResult.ip + ')' : '');
+  } else {
+    result.style.background = '#f8d7da';
+    result.style.color = '#721c24';
+    result.textContent = 'Geen printer gevonden. Controleer IP adres en verbinding.';
+  }
+}
 

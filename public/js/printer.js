@@ -12,25 +12,66 @@ const Printer = {
   isReady: false,
   lastError: null,
   printMethod: null, // 'usb' | 'network' | null
+  printerIp: null, // Configurable printer IP address
+  printerPort: 9100, // Default ESC/POS port
 
-  // Bekende printer vendor-IDs
+  // Bekende printer vendor-IDs (uit lesmateriaal docent)
   VENDORS: [
     0x0483, // STM / Xprinter
     0x04b8, // Seiko Epson
     0x0456, // Microtek
     0x067b, // Prolific Technology
-    0x0519, // Star Micronics
-    0x0DD4, // Custom
-    0x1A86, // QinHeng (CH340)
   ],
+
+  /** Load printer configuration from localStorage */
+  loadConfig() {
+    const savedIp = localStorage.getItem('printer_ip');
+    if (savedIp) {
+      Printer.printerIp = savedIp;
+      console.log('[Printer] Config loaded - IP:', savedIp);
+    }
+  },
+
+  /** Save printer IP to localStorage */
+  saveConfig(ip) {
+    Printer.printerIp = ip;
+    localStorage.setItem('printer_ip', ip);
+    console.log('[Printer] Config saved - IP:', ip);
+    Printer._notifyStatus('configured', `Printer IP ingesteld: ${ip}`);
+  },
+
+  /** Configure printer IP address for network printing */
+  configure(ip) {
+    if (!ip || ip.trim() === '') {
+      Printer.lastError = 'Ongeldig IP adres';
+      return false;
+    }
+    // Basic IP validation
+    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipPattern.test(ip)) {
+      Printer.lastError = 'Ongeldig IP adres formaat';
+      return false;
+    }
+    Printer.saveConfig(ip.trim());
+    return true;
+  },
+
+  /** Get current printer IP (from config or default) */
+  getPrinterIp() {
+    return Printer.printerIp || localStorage.getItem('printer_ip') || null;
+  },
 
   /** Volledige auto-detect: probeer alle methodes zonder gebruikersprompt. */
   async autoDetect() {
     console.log('[Printer] Start automatische detectie...');
     
+    // Load config first
+    Printer.loadConfig();
+    
     // Stap 1: Probeer USB WebUSB
     if (navigator.usb) {
       try {
+        // Eerst kijken naar al geautoriseerde apparaten
         const devices = await navigator.usb.getDevices();
         const printer = devices.find((d) => Printer.VENDORS.includes(d.vendorId));
         
@@ -39,8 +80,11 @@ const Printer = {
           Printer.printMethod = 'usb';
           Printer.isReady = true;
           console.log('[Printer] USB printer gevonden:', printer.productName || printer.manufacturerName || 'Onbekend');
+          Printer._notifyStatus('usb-connected', `Printer: ${printer.productName || printer.manufacturerName}`);
           return true;
         }
+        
+        console.log('[Printer] Geen geautoriseerde USB printer gevonden');
       } catch (e) {
         console.warn('[Printer] USB detectie fout:', e.message);
       }
@@ -53,6 +97,44 @@ const Printer = {
     console.log('[Printer] Netwerk methode beschikbaar als fallback');
     
     return true; // Altijd succesvol, print wordt later geprobeerd
+  },
+
+  /** Auto-detect met gebruikersprompt (voor handmatige selectie) */
+  async autoDetectWithPrompt() {
+    try {
+      if (!navigator.usb) {
+        throw new Error('WebUSB niet ondersteund');
+      }
+
+      // First, try to get already authorized devices
+      const devices = await navigator.usb.getDevices();
+      const printer = devices.find(device => 
+        Printer.VENDORS.includes(device.vendorId)
+      );
+
+      if (printer) {
+        Printer.selectedDevice = printer;
+        Printer.printMethod = 'usb';
+        Printer.isReady = true;
+        console.log('[Printer] USB printer gevonden:', printer.productName || printer.manufacturerName);
+        return true;
+      }
+
+      // If no authorized device found, request user to select one
+      const filters = Printer.VENDORS.map(vendorId => ({ vendorId }));
+      Printer.selectedDevice = await navigator.usb.requestDevice({ filters });
+      Printer.printMethod = 'usb';
+      Printer.isReady = true;
+      console.log('[Printer] Printer geselecteerd:', Printer.selectedDevice.productName);
+      return true;
+
+    } catch (error) {
+      if (error.name !== 'NotFoundError') {
+        Printer.lastError = error.message;
+        console.error('[Printer] Auto-detectie fout:', error);
+      }
+      return false;
+    }
   },
 
   /**
@@ -172,10 +254,13 @@ const Printer = {
    * @returns {Promise<boolean>} Gelukt of niet
    */
   async printUSB(orderData) {
+    console.log('[Printer] Attempting USB print...');
+    
     try {
       // Geen USB ondersteuning? Skip direct
       if (!navigator.usb) {
         console.log('[Printer] WebUSB niet beschikbaar, probeer netwerk...');
+        Printer.lastError = 'WebUSB niet ondersteund';
         return false;
       }
 
@@ -186,19 +271,26 @@ const Printer = {
           const printer = devices.find((d) => Printer.VENDORS.includes(d.vendorId));
           if (printer) {
             Printer.selectedDevice = printer;
-            console.log('[Printer] USB printer gevonden via late detectie');
+            console.log('[Printer] USB printer gevonden via late detectie:', printer.productName);
           }
         } catch (e) {
-          // Stille fout
+          console.warn('[Printer] Late detectie fout:', e.message);
         }
       }
 
-      // Nog steeds geen printer? Skip naar netwerk
+      // Nog steeds geen printer? Vraag gebruiker om te selecteren
       if (!Printer.selectedDevice) {
-        console.log('[Printer] Geen USB printer beschikbaar, fallback naar netwerk');
-        return false;
+        console.log('[Printer] Geen USB printer gevonden, vraag gebruiker...');
+        const found = await Printer.autoDetectWithPrompt();
+        if (!found || !Printer.selectedDevice) {
+          console.log('[Printer] Geen USB printer geselecteerd, fallback naar netwerk');
+          Printer.lastError = 'Geen USB printer geselecteerd';
+          return false;
+        }
       }
 
+      console.log('[Printer] USB printer verbinden...');
+      
       // Open en claim device
       await Printer.selectedDevice.open();
 
@@ -209,16 +301,19 @@ const Printer = {
       try {
         await Printer.selectedDevice.claimInterface(0);
       } catch (e) {
-        // Interface al geclaimd, doorgaan
+        console.log('[Printer] Interface al geclaimd, doorgaan...');
       }
 
       // Zoek output endpoint
       const intf = Printer.selectedDevice.configuration.interfaces[0].alternates[0];
       const endpoint = intf.endpoints.find((ep) => ep.direction === 'out');
       if (!endpoint) {
+        Printer.lastError = 'Output endpoint niet gevonden';
         throw new Error('Output endpoint niet gevonden');
       }
 
+      console.log('[Printer] Data versturen naar printer...');
+      
       // Verstuur data
       const encoder = new TextEncoder();
       await Printer.selectedDevice.transferOut(
@@ -228,11 +323,12 @@ const Printer = {
 
       console.log('[Printer] USB bon succesvol geprint!');
       Printer._notifyStatus('usb-printed', 'Bon geprint via USB');
+      Printer.printMethod = 'usb';
 
       // Sluit device netjes af
       setTimeout(() => {
         Printer.selectedDevice.close().catch(() => {});
-      }, 500);
+      }, 1000);
 
       return true;
     } catch (e) {
@@ -248,35 +344,48 @@ const Printer = {
    * @returns {Promise<boolean>}
    */
   async printNetwork(orderData) {
+    console.log('[Printer] Attempting network print...');
+    
     try {
+      // Get printer IP from config or use saved one
+      const printerIp = Printer.getPrinterIp();
+      console.log('[Printer] Network print - Printer IP:', printerIp);
+      
+      const requestBody = {
+        action: 'print',
+        receipt: Printer.buildESCPOS(orderData),
+      };
+      
+      // Add printer IP if configured
+      if (printerIp) {
+        requestBody.printer_ip = printerIp;
+      }
+      
       const response = await fetch('xprint.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'print',
-          receipt: Printer.buildESCPOS(orderData),
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
       
       if (data.success) {
-        console.log('[Printer] Netwerkbon succesvol geprint!');
+        console.log('[Printer] Network print successful!');
         Printer._notifyStatus('network-printed', 'Bon geprint via netwerk');
         return true;
       } else {
         // Printer niet bereikbaar is geen kritieke fout - vaak is er gewoon geen netwerkprinter
-        if (data.error && data.error.includes('niet bereikbaar')) {
-          console.log('[Printer] Netwerkprinter niet beschikbaar (normaal als er geen is)');
+        if (data.error && (data.error.includes('niet bereikbaar') || data.error.includes('niet geconfigureerd'))) {
+          console.log('[Printer] Network printer not available:', data.error);
         } else {
-          console.error('[Printer] Netwerkprinter fout:', data.error);
+          console.error('[Printer] Network printer error:', data.error);
         }
         Printer.lastError = data.error;
         return false;
       }
     } catch (e) {
       // Netwerk fout - vaak is er geen PHP backend of netwerk
-      console.log('[Printer] Netwerk niet beschikbaar:', e.message);
+      console.log('[Printer] Network not available:', e.message);
       Printer.lastError = e.message;
       return false;
     }
@@ -318,7 +427,7 @@ const Printer = {
 
   /**
    * Test of er een werkende printer is.
-   * @returns {Promise<{available: boolean, method: string|null}>}
+   * @returns {Promise<{available: boolean, method: string|null, ip: string|null}>}
    */
   async test() {
     // Test USB
@@ -327,28 +436,26 @@ const Printer = {
         const devices = await navigator.usb.getDevices();
         const printer = devices.find((d) => Printer.VENDORS.includes(d.vendorId));
         if (printer) {
-          return { available: true, method: 'usb' };
+          return { available: true, method: 'usb', ip: null };
         }
       } catch (e) {}
     }
     
     // Test netwerk
+    const printerIp = Printer.getPrinterIp();
     try {
-      const response = await fetch('xprint.php?test=1', { method: 'GET' });
+      // Build test URL with printer IP if configured
+      let testUrl = 'xprint.php?test=1';
+      if (printerIp) {
+        testUrl += '&printer_ip=' + encodeURIComponent(printerIp);
+      }
+      const response = await fetch(testUrl, { method: 'GET' });
       const data = await response.json();
       if (data.success) {
-        return { available: true, method: 'network' };
+        return { available: true, method: 'network', ip: printerIp };
       }
     } catch (e) {}
     
-    return { available: false, method: null };
+    return { available: false, method: null, ip: printerIp };
   },
 };
-
-// Automatische initialisatie bij laden van de pagina
-// De printer wordt stil gedetecteerd, geen gebruikersinteractie nodig
-window.addEventListener('load', () => {
-  Printer.init((status) => {
-    console.log('[Printer Status]:', status.status, status.message);
-  });
-});
