@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$db = 'kiosk_db'; // De naam van je database uit phpMyAdmin
-$user = 'root';      // Meestal 'root' bij XAMPP/MAMP
-$pass = '';          // Meestal leeg bij XAMPP, of 'root' bij MAMP
+$db = 'u240753_kiosk_print'; // Lokale XAMPP database
+$user = 'u240753_kiosk_print';      // XAMPP gebruiker
+$pass = 'ykeVdYAYtRkgrJTk78EK';          // XAMPP wachtwoord is leeg
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
