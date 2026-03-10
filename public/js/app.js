@@ -1192,34 +1192,62 @@ function proceedToCheckout() {
 
   // Bon printen via USB of netwerk
   if (typeof Printer !== "undefined") {
-    const localeMap2 = { nl: "nl-NL", de: "de-DE", en: "en-GB" };
-    const locale2 = localeMap2[AppState.selectedLanguage] || "nl-NL";
-    const now2 = new Date();
-    const printVatRate = 0.09;
-    let printSubtotal = 0;
-    const printItems = cartSnapshot.map((item) => {
-      const product = getProductById(item.productId);
-      if (!product) return null;
-      const lineTotal = product.price * item.quantity;
-      printSubtotal += lineTotal;
-      return {
-        name: getTranslation(product.nameKey) || product.nameKey,
-        quantity: item.quantity,
-        total: lineTotal,
-      };
-    }).filter(Boolean);
-    const printVat = printSubtotal - printSubtotal / (1 + printVatRate);
+    // First check if we have a printer, if not, prompt user to connect
+    const checkPrinter = async () => {
+      const localeMap2 = { nl: "nl-NL", de: "de-DE", en: "en-GB" };
+      const locale2 = localeMap2[AppState.selectedLanguage] || "nl-NL";
+      const now2 = new Date();
+      const printVatRate = 0.09;
+      let printSubtotal = 0;
+      const printItems = cartSnapshot.map((item) => {
+        const product = getProductById(item.productId);
+        if (!product) return null;
+        const lineTotal = product.price * item.quantity;
+        printSubtotal += lineTotal;
+        return {
+          name: getTranslation(product.nameKey) || product.nameKey,
+          quantity: item.quantity,
+          total: lineTotal,
+        };
+      }).filter(Boolean);
+      const printVat = printSubtotal - printSubtotal / (1 + printVatRate);
 
-    Printer.print({
-      orderNumber: number,
-      orderType: getTranslation(orderTypeKey),
-      items: printItems,
-      subtotal: printSubtotal / (1 + printVatRate),
-      vat: printVat,
-      total: printSubtotal,
-      date: now2.toLocaleDateString(locale2, { day: "2-digit", month: "2-digit", year: "numeric" }),
-      time: now2.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" }),
-    });
+      // Build order data
+      const orderData = {
+        orderNumber: number,
+        orderType: getTranslation(orderTypeKey),
+        items: printItems,
+        subtotal: printSubtotal / (1 + printVatRate),
+        vat: printVat,
+        total: printSubtotal,
+        date: now2.toLocaleDateString(locale2, { day: "2-digit", month: "2-digit", year: "numeric" }),
+        time: now2.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      // If no printer selected, prompt user
+      if (!Printer.selectedDevice && navigator.usb) {
+        // Show message to user
+        const statusEl = document.getElementById('printer-status');
+        if (statusEl) {
+          const textEl = statusEl.querySelector('.printer-status__text');
+          textEl.textContent = 'Selecteer printer...';
+          statusEl.classList.add('printer-status--ready');
+        }
+        
+        // Ask user to connect printer
+        const connected = await Printer.selectDevice();
+        if (!connected) {
+          // User cancelled - try network anyway
+          console.log('[Printer] Geen USB printer geselecteerd, probeer netwerk...');
+        }
+      }
+
+      // Now print
+      Printer.print(orderData);
+    };
+
+    // Execute printer check
+    checkPrinter();
   }
 }
 
@@ -1421,10 +1449,18 @@ const BarcodeScanner = {
   const statusEl = document.getElementById('printer-status');
   if (!statusEl) return;
 
-  // Toon altijd de status indicator
-  statusEl.style.display = 'flex';
+  // Status is verborgen - alleen tonen bij problemen
+  // statusEl stays hidden by default
 
   function updatePrinterUI(status) {
+    // Only show status on errors or when printing
+    if (status.status === 'error' || status.status === 'usb-disconnected' || 
+        status.status === 'usb-printed' || status.status === 'network-printed') {
+      statusEl.style.display = 'flex';
+    } else {
+      statusEl.style.display = 'none';
+      return;
+    }
     const textEl = statusEl.querySelector('.printer-status__text');
     
     // Verwijder oude status klassen
