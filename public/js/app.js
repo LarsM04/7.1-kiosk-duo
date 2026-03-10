@@ -10,6 +10,7 @@ const AppState = {
   cart: [], // { productId, quantity }
   lastOrderNumber: 0,
   resetTimerId: null,
+  recommendedPopupShown: false, // Track if recommended popup has been shown
 };
 
 // Afbeeldingen voor het splash-screen (pas paden aan naar jouw bestanden)
@@ -120,6 +121,11 @@ const translations = {
     prodInfusedWater: "Fruitwater",
     prodBerryBlast: "Berry Blast Smoothie",
     prodCitrusCooler: "Citrus Koeling",
+    // Recommended product popup
+    recommendedTitle: "Wil je er nog iets bij bestellen?",
+    recommendedSubtitle: "Voeg dit heerlijke product toe aan je bestelling!",
+    recommendedAdd: "Toevoegen",
+    recommendedSkip: "Nee, bedankt",
   },
   de: {
     tapToOrder: "Zum Bestellen tippen",
@@ -215,6 +221,11 @@ const translations = {
     prodInfusedWater: "Fruchtinfusiertes Wasser",
     prodBerryBlast: "Berry Blast Smoothie",
     prodCitrusCooler: "Zitrus-Kühler",
+    // Recommended product popup
+    recommendedTitle: "Möchtest du noch etwas bestellen?",
+    recommendedSubtitle: "Fügen Sie dieses köstliche Produkt zu Ihrer Bestellung hinzu!",
+    recommendedAdd: "Hinzufügen",
+    recommendedSkip: "Nein, danke",
   },
   en: {
     tapToOrder: "Tap to order",
@@ -310,6 +321,11 @@ const translations = {
     prodInfusedWater: "Fruit-Infused Water",
     prodBerryBlast: "Berry Blast Smoothie",
     prodCitrusCooler: "Citrus Cooler",
+    // Recommended product popup
+    recommendedTitle: "Would you like to add something else?",
+    recommendedSubtitle: "Add this delicious product to your order!",
+    recommendedAdd: "Add",
+    recommendedSkip: "No, thanks",
   },
 };
 
@@ -926,12 +942,171 @@ function generateOrderNumber() {
   return AppState.lastOrderNumber;
 }
 
+// Recommended products for popup - 3 products
+const recommendedProductIds = [
+  "prod-21", // Green Glow Smoothie
+  "prod-24", // Berry Blast Smoothie
+  "prod-22", // Iced Matcha
+];
+
+function showRecommendedProductPopup(onConfirm, onSkip) {
+  // Close any existing modal
+  closeProductModal();
+
+  // Get the recommended products
+  const products = recommendedProductIds
+    .map(id => getProductById(id))
+    .filter(p => p !== null);
+
+  if (products.length === 0) {
+    // If no products found, just proceed with checkout
+    onSkip();
+    return;
+  }
+
+  const modal = document.createElement("div");
+  modal.id = "recommended-modal";
+  modal.className = "product-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "product-modal-backdrop";
+  modal.appendChild(backdrop);
+
+  const dialog = document.createElement("div");
+  dialog.className = "product-modal-dialog recommended-modal-dialog";
+
+  const content = document.createElement("div");
+  content.className = "product-modal-content recommended-modal-content";
+
+  // Header
+  const header = document.createElement("div");
+  header.className = "recommended-modal-header-center";
+
+  // Title
+  const titleEl = document.createElement("div");
+  titleEl.className = "recommended-modal-title";
+  titleEl.textContent = getTranslation("recommendedTitle");
+  header.appendChild(titleEl);
+
+  // Subtitle
+  const subtitleEl = document.createElement("div");
+  subtitleEl.className = "recommended-modal-subtitle";
+  subtitleEl.textContent = getTranslation("recommendedSubtitle");
+  header.appendChild(subtitleEl);
+
+  content.appendChild(header);
+
+  // Products grid
+  const productsGrid = document.createElement("div");
+  productsGrid.className = "recommended-products-grid";
+
+  products.forEach((product) => {
+    const productCard = document.createElement("div");
+    productCard.className = "recommended-product-card";
+
+    // Make whole card clickable to show product details
+    productCard.style.cursor = "pointer";
+    productCard.addEventListener("click", (e) => {
+      // Don't open modal if clicking on the add button
+      if (e.target.classList.contains("btn-add-recommended-product")) {
+        return;
+      }
+      // Just open product modal, don't remove recommended modal
+      openProductModal(product);
+    });
+
+    // Product image
+    const imgContainer = document.createElement("div");
+    imgContainer.className = "recommended-product-image-container";
+
+    const img = document.createElement("img");
+    img.className = "recommended-product-image";
+    img.src = product.image || "assets/images/menu/green_glow_smoothie.png";
+    img.alt = getTranslation(product.nameKey) || product.name;
+    imgContainer.appendChild(img);
+    productCard.appendChild(imgContainer);
+
+    // Product name
+    const nameEl = document.createElement("div");
+    nameEl.className = "recommended-product-name";
+    nameEl.textContent = getTranslation(product.nameKey) || product.name;
+    productCard.appendChild(nameEl);
+
+    // Product price
+    const priceEl = document.createElement("div");
+    priceEl.className = "recommended-product-price";
+    priceEl.textContent = formatPrice(product.price);
+    productCard.appendChild(priceEl);
+
+    // Add button
+    const addBtn = document.createElement("button");
+    addBtn.className = "btn-add-recommended-product";
+    addBtn.type = "button";
+    addBtn.textContent = getTranslation("recommendedAdd");
+    addBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent opening product modal
+      addToCart(product.id);
+      modal.remove();
+      onConfirm();
+    });
+    productCard.appendChild(addBtn);
+
+    productsGrid.appendChild(productCard);
+  });
+
+  content.appendChild(productsGrid);
+
+  // Footer with skip button
+  const footer = document.createElement("div");
+  footer.className = "recommended-modal-footer";
+
+  const skipBtn = document.createElement("button");
+  skipBtn.className = "btn-skip-recommended";
+  skipBtn.type = "button";
+  skipBtn.textContent = getTranslation("recommendedSkip");
+  skipBtn.addEventListener("click", () => {
+    modal.remove();
+    onSkip();
+  });
+  footer.appendChild(skipBtn);
+
+  content.appendChild(footer);
+
+  dialog.appendChild(content);
+  modal.appendChild(dialog);
+  document.body.appendChild(modal);
+}
+
 function checkout() {
   if (AppState.cart.length === 0) {
     showScreen("menu");
     return;
   }
 
+  // Show recommended product popup if not yet shown
+  if (!AppState.recommendedPopupShown) {
+    AppState.recommendedPopupShown = true;
+    showRecommendedProductPopup(
+      () => {
+        // User added recommended product - stay on cart screen
+        updateCartUI();
+      },
+      () => {
+        // User skipped - stay on cart screen
+        updateCartUI();
+      }
+    );
+    return;
+  }
+
+  // Second click - proceed to checkout
+  AppState.recommendedPopupShown = false; // Reset for next order
+  proceedToCheckout();
+}
+
+function proceedToCheckout() {
   const number = generateOrderNumber();
   const cartSnapshot = [...AppState.cart];
   AppState.cart = [];
@@ -1053,6 +1228,7 @@ function resetToSplash() {
   AppState.cart = [];
   AppState.orderNumber = null;
   AppState.activeCategoryId = categories[0] ? categories[0].id : null;
+  AppState.recommendedPopupShown = false; // Reset for next order
   clearConfirmationTimer();
   showScreen("splash");
   applyTranslations();
