@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
-$db = 'u240753_kiosk_print'; // Lokale XAMPP database
-$user = 'u240753_kiosk_print';      // XAMPP gebruiker
-$pass = 'ykeVdYAYtRkgrJTk78EK';          // XAMPP wachtwoord is leeg
+$db = 'kiosk_db'; // Lokale XAMPP database
+$user = 'root';      // XAMPP gebruiker
+$pass = '';          // XAMPP wachtwoord is leeg
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
