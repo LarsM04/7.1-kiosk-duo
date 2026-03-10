@@ -1014,6 +1014,38 @@ function checkout() {
   // Re-apply order type text after translations
   if (orderTypeEl) orderTypeEl.textContent = getTranslation(orderTypeKey);
   scheduleResetToSplash();
+
+  // Bon printen via USB of netwerk
+  if (typeof Printer !== "undefined") {
+    const localeMap2 = { nl: "nl-NL", de: "de-DE", en: "en-GB" };
+    const locale2 = localeMap2[AppState.selectedLanguage] || "nl-NL";
+    const now2 = new Date();
+    const printVatRate = 0.09;
+    let printSubtotal = 0;
+    const printItems = cartSnapshot.map((item) => {
+      const product = getProductById(item.productId);
+      if (!product) return null;
+      const lineTotal = product.price * item.quantity;
+      printSubtotal += lineTotal;
+      return {
+        name: getTranslation(product.nameKey) || product.nameKey,
+        quantity: item.quantity,
+        total: lineTotal,
+      };
+    }).filter(Boolean);
+    const printVat = printSubtotal - printSubtotal / (1 + printVatRate);
+
+    Printer.print({
+      orderNumber: number,
+      orderType: getTranslation(orderTypeKey),
+      items: printItems,
+      subtotal: printSubtotal / (1 + printVatRate),
+      vat: printVat,
+      total: printSubtotal,
+      date: now2.toLocaleDateString(locale2, { day: "2-digit", month: "2-digit", year: "numeric" }),
+      time: now2.toLocaleTimeString(locale2, { hour: "2-digit", minute: "2-digit" }),
+    });
+  }
 }
 
 function resetToSplash() {
@@ -1145,7 +1177,123 @@ async function initApp() {
   renderProductsForCategory(AppState.activeCategoryId);
   updateCartUI();
   showScreen("splash");
+  BarcodeScanner.init();
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
+
+// ─── USB Barcode / QR-scanner (HID keyboard-emulatie) ───────────────────────
+// De scanner stuurt tekens als toetsaanslagen en sluit af met Enter.
+// We vangen de invoer op en zoeken het product in het menu.
+
+const BarcodeScanner = {
+  _buffer: "",
+  _lastKeyTime: 0,
+  TIMEOUT_MS: 100, // ms stilte tussen losse toetsaanslagen vs. scanner-burst
+
+  init() {
+    document.addEventListener("keydown", (e) => BarcodeScanner._onKey(e));
+    console.log("[BarcodeScanner] Klaar voor USB barcode/QR-scanner invoer.");
+  },
+
+  _onKey(event) {
+    const now = Date.now();
+
+    // Reset buffer als er te veel tijd verstreken is (handmatige invoer?)
+    if (now - BarcodeScanner._lastKeyTime > 500) {
+      BarcodeScanner._buffer = "";
+    }
+    BarcodeScanner._lastKeyTime = now;
+
+    if (event.key === "Enter") {
+      const code = BarcodeScanner._buffer.trim();
+      BarcodeScanner._buffer = "";
+      if (code) BarcodeScanner._handleScan(code);
+      return;
+    }
+
+    // Alleen afdrukbare tekens bewaren
+    if (event.key.length === 1) {
+      BarcodeScanner._buffer += event.key;
+    }
+  },
+
+  _handleScan(code) {
+    console.log("[BarcodeScanner] Gescand:", code);
+
+    // Zoek product op barcode (product.barcode of product.id als string)
+    let found = null;
+    for (const catId of Object.keys(productsByCategory)) {
+      const product = productsByCategory[catId].find(
+        (p) => p.barcode === code || String(p.id) === code
+      );
+      if (product) { found = product; break; }
+    }
+
+    if (found) {
+      addToCart(found.id);
+      console.log("[BarcodeScanner] Product toegevoegd aan wagen:", found.nameKey);
+    } else {
+      console.warn("[BarcodeScanner] Geen product gevonden voor code:", code);
+    }
+  },
+};
+
+// ─── Printer Status UI Integration ───────────────────────
+// Toont printer status in de hoek van het scherm
+(function() {
+  const statusEl = document.getElementById('printer-status');
+  if (!statusEl) return;
+
+  // Toon altijd de status indicator
+  statusEl.style.display = 'flex';
+
+  function updatePrinterUI(status) {
+    const textEl = statusEl.querySelector('.printer-status__text');
+    
+    // Verwijder oude status klassen
+    statusEl.classList.remove('printer-status--ready', 'printer-status--usb', 'printer-status--network', 'printer-status--error', 'printer-status--printing');
+
+    switch (status.status) {
+      case 'ready':
+        statusEl.classList.add('printer-status--ready');
+        textEl.textContent = 'Printer gereed';
+        break;
+      case 'usb-connected':
+      case 'usb-selected':
+        statusEl.classList.add('printer-status--usb');
+        textEl.textContent = 'USB Printer';
+        break;
+      case 'usb-printed':
+        statusEl.classList.add('printer-status--usb', 'printer-status--printing');
+        textEl.textContent = 'Bonnetje geprint!';
+        setTimeout(() => statusEl.classList.remove('printer-status--printing'), 2000);
+        break;
+      case 'network-printed':
+        statusEl.classList.add('printer-status--network', 'printer-status--printing');
+        textEl.textContent = 'Bonnetje geprint!';
+        setTimeout(() => statusEl.classList.remove('printer-status--printing'), 2000);
+        break;
+      case 'network-connected':
+        statusEl.classList.add('printer-status--network');
+        textEl.textContent = 'Netwerk printer';
+        break;
+      case 'usb-disconnected':
+        statusEl.classList.add('printer-status--error');
+        textEl.textContent = 'USB offline';
+        break;
+      case 'error':
+        statusEl.classList.add('printer-status--error');
+        textEl.textContent = status.message || 'Printer fout';
+        break;
+      default:
+        textEl.textContent = status.message || 'Printer';
+    }
+  }
+
+  // Initialiseer printer met status callback
+  if (typeof Printer !== 'undefined') {
+    Printer.init(updatePrinterUI);
+  }
+})();
 
