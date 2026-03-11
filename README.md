@@ -1,6 +1,12 @@
-# Happy Herbivore Kiosk
+ Happy Herbivore Kiosk
 
-A touch-screen self-ordering kiosk system designed for Happy Herbivore, a 100% plant-based restaurant. Customers can independently browse the menu, select products, customize quantities, and complete their orders without staff assistance. The system supports multiple languages and provides a seamless digital ordering experience.
+This is a kiosk website ( Happy herbivore) 100% plant based restaurant, designed to be used on a self-ordering screen in a restaurant. Customers can easily browse the menu, change the language to their preferred option, and place their food orders directly on the screen.
+
+While ordering, users can add products to their cart, remove items they no longer want, or increase the quantity of specific products. The interface is designed to be simple and intuitive so that customers can quickly customize their order.
+
+When the customer proceeds to the payment stage, the system may display a suggestion asking if they would like to add something extra to their order. For example, it might recommend a popular item or a complementary product that could enhance their meal. The customer can either add the suggested product or dismiss the suggestion.
+
+After closing the suggestion screen—either by selecting an additional item or by skipping it—the system will prompt the customer to complete the payment. Once the payment is processed, a receipt will automatically be printed for the customer, confirming the order.
 
 ## Features
 
